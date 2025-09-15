@@ -5,7 +5,6 @@
 **Geo-Pilot 2.0** is a user-controlled drone application that allows pilots to check safe flight zones, control drones, view live video, capture photos/videos, and monitor drone status. Perfect for hobbyists and developers working on drone automation.
 
 ---
-
 ## 🚀 Features
 
 - **Zone Safety Check**: Check if the intended flight zone is safe before flying.  
@@ -36,6 +35,23 @@ GeoPilot/
 - **Tools:** Replit, Vite, Drizzle ORM  
 
 ---
+## 🚀 Features
+## 🌟 Contribution & Acknowledgement
+
+This project was developed by **Arnab Barua** with guidance and professional insights from **Pallab Barua**.
+
+### Pallab Barua
+Financial Accountant | Financial Reporting & Compliance | IFRS | Process Automation | NZ Tax | Advanced Data & BI Tools Experience  
+
+🔹 *Special thanks to Pallab Barua for providing professional expertise, ensuring accurate planning, systematic project structuring, and financial insight for this project. His guidance has been instrumental in shaping this project into a reliable and structured drone application.*
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.  
+
+---
 ## 💻 Getting Started
 
 Follow these steps to set up **Geo-Pilot 2.0** locally:
@@ -50,28 +66,7 @@ npm install
 npm run dev
 4️⃣ Open in your browser
 
-Go to: http://localhost:5173 🌐
-
----
-
-# 🌟 CONTRIBUTION & ACKNOWLEDGEMENT
-
-This project was developed by **Arnab Barua** with guidance and professional insights from my brother, **Pallab Barua**.
-
-## 👨‍💼 Pallab Barua
-**Financial Accountant | Financial Reporting & Compliance | IFRS | Process Automation | NZ Tax | Advanced Data & BI Tools Experience**
-
-> 🔹 **Special thanks to Pallab Barua**  
-> for providing professional expertise, ensuring **accurate planning**, **systematic project structuring**, and **financial insight** for this project.  
-> His guidance has been **instrumental** in shaping this project into a **reliable and structured drone application**.
-
----
-
-# 📄 LICENSE
-
-This project is licensed under the **MIT License**.  
-
----
+Go to: http://localhost:5173 
 
 
 
