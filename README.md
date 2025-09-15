@@ -51,29 +51,28 @@ npm run dev
 4️⃣ Open in your browser
 
 Go to: http://localhost:5173 🌐
+
 ---
-## 🌟 CONTRIBUTION & ACKNOWLEDGEMENT
 
-This project was developed by **_Arnab Barua_** with guidance and professional insights from my brother, **_Pallab Barua_**.
+# 🌟 CONTRIBUTION & ACKNOWLEDGEMENT
 
-### 👨‍💼 Pallab Barua
+This project was developed by **Arnab Barua** with guidance and professional insights from my brother, **Pallab Barua**.
+
+## 👨‍💼 Pallab Barua
 **Financial Accountant | Financial Reporting & Compliance | IFRS | Process Automation | NZ Tax | Advanced Data & BI Tools Experience**
 
 > 🔹 **Special thanks to Pallab Barua**  
-> for providing professional expertise, ensuring **accurate planning**, **systematic project structuring**, and **financial insight** for this project.
+> for providing professional expertise, ensuring **accurate planning**, **systematic project structuring**, and **financial insight** for this project.  
+> His guidance has been **instrumental** in shaping this project into a **reliable and structured drone application**.
 
 ---
 
-## 📄 LICENSE
+# 📄 LICENSE
 
 This project is licensed under the **MIT License**.  
-See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📫 CONTACT
 
-**Arnab Barua** – [arnabbarua20](https://github.com/arnabbarua20)  
-**Email:** **arnab.barua@example.com** 
 
 
