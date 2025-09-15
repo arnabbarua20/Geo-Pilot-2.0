@@ -1,0 +1,606 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Zone Manager - New Zealand</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        danger: '#DC2626',
+                        success: '#059669',
+                        warning: '#D97706',
+                        neutral: '#374151'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 0;
+        }
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 16px;
+        }
+        .leaflet-popup-close-button {
+            color: #6B7280;
+            font-size: 18px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- @COMPONENT: AppContainer [main application wrapper] -->
+    <div id="app-container" class="h-screen w-screen overflow-hidden">
+        
+        <!-- Navigation Header -->
+        <!-- @COMPONENT: NavigationHeader [primary navigation with view switcher] -->
+        <header class="bg-white shadow-sm border-b border-gray-200 z-50 relative">
+            <div class="flex items-center justify-between px-4 py-3">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-drone text-primary text-xl"></i>
+                    <h1 class="text-xl font-semibold text-neutral">Drone Zone Manager</h1>
+                    <span class="px-2 py-1 bg-primary text-white text-xs rounded-full">NZ</span>
+                </div>
+                
+                <nav class="flex items-center space-x-1">
+                    <button id="map-view-btn" class="px-4 py-2 bg-primary text-white rounded-lg font-medium transition-colors duration-200 hover:bg-blue-700" data-event="click:switchToMapView">
+                        <i class="fas fa-map mr-2"></i>Map View
+                    </button>
+                    <button id="report-view-btn" class="px-4 py-2 bg-gray-100 text-neutral rounded-lg font-medium transition-colors duration-200 hover:bg-gray-200" data-event="click:switchToReportView">
+                        <i class="fas fa-plus mr-2"></i>Report Zone
+                    </button>
+                </nav>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: NavigationHeader -->
+
+        <!-- Main Content Area -->
+        <main class="h-full relative" style="height: calc(100vh - 64px);">
+            
+            <!-- Map View -->
+            <!-- @COMPONENT: MapView [full-screen leaflet map with zones] -->
+            <div id="map-view" class="h-full w-full relative">
+                <!-- Map Container -->
+                <div id="map" class="h-full w-full" data-implementation="Initialize Leaflet map centered on New Zealand (-41.2865, 174.7762)"></div>
+                
+                <!-- Map Controls Overlay -->
+                <div class="absolute top-4 left-4 z-40 space-y-2">
+                    <!-- Zone Legend -->
+                    <div class="bg-white rounded-lg shadow-lg p-4 max-w-xs">
+                        <h3 class="font-semibold text-neutral mb-3 flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-primary"></i>
+                            No-Fly Zones
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-danger rounded-full"></div>
+                                <span class="text-sm text-neutral">Airport Restricted</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-warning rounded-full"></div>
+                                <span class="text-sm text-neutral">Military Zone</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                                <span class="text-sm text-neutral">Nature Reserve</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="bg-white rounded-lg shadow-lg p-4 max-w-xs">
+                        <h4 class="font-medium text-neutral mb-2">Zone Statistics</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="text-center">
+                                <div class="font-semibold text-danger" data-bind="zoneStats.restricted">12</div>
+                                <div class="text-gray-500">Restricted</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-warning" data-bind="zoneStats.controlled">8</div>
+                                <div class="text-gray-500">Controlled</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Click Instructions -->
+                <div class="absolute bottom-4 right-4 z-40">
+                    <div class="bg-white rounded-lg shadow-lg p-3">
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="fas fa-mouse-pointer mr-2 text-primary"></i>
+                            Click on map to select location for reporting
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: MapView -->
+
+            <!-- Report Form View -->
+            <!-- @COMPONENT: ReportFormView [form for reporting new drone zones] -->
+            <div id="report-view" class="h-full w-full bg-gray-50 overflow-y-auto hidden">
+                <div class="max-w-2xl mx-auto p-6">
+                    
+                    <!-- Form Header -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-semibold text-neutral">Report Drone-Restricted Area</h2>
+                                <p class="text-gray-600">Help keep our skies safe by reporting new restricted zones</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Form -->
+                    <form class="bg-white rounded-lg shadow-sm p-6" data-event="submit:handleFormSubmit">
+                        <!-- Location Section -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-neutral mb-2">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Location
+                            </label>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="location-input"
+                                    placeholder="Click on map to select location or enter manually"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                    data-bind="form.location"
+                                    data-mock="true"
+                                    value="-41.2865, 174.7762 (Wellington, New Zealand)"
+                                />
+                                <button 
+                                    type="button" 
+                                    class="absolute right-3 top-3 text-primary hover:text-blue-700 transition-colors"
+                                    data-event="click:openMapSelector"
+                                    data-implementation="Switch to map view and enable location selection mode"
+                                >
+                                    <i class="fas fa-crosshairs"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Latitude, Longitude coordinates</p>
+                        </div>
+
+                        <!-- Zone Title -->
+                        <div class="mb-6">
+                            <label for="zone-title" class="block text-sm font-medium text-neutral mb-2">
+                                <i class="fas fa-tag mr-2"></i>Zone Title *
+                            </label>
+                            <input 
+                                type="text" 
+                                id="zone-title"
+                                placeholder="e.g., Wellington Hospital Helipad, Private Property, Event Space"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                required
+                                data-bind="form.title"
+                                data-mock="true"
+                            />
+                        </div>
+
+                        <!-- Restriction Reason -->
+                        <div class="mb-6">
+                            <label for="restriction-reason" class="block text-sm font-medium text-neutral mb-2">
+                                <i class="fas fa-clipboard-list mr-2"></i>Reason for Restriction *
+                            </label>
+                            <select 
+                                id="restriction-reason"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                required
+                                data-bind="form.reason"
+                            >
+                                <option value="">Select a reason...</option>
+                                <option value="airport">Airport/Helipad Operations</option>
+                                <option value="military">Military Installation</option>
+                                <option value="hospital">Hospital/Emergency Services</option>
+                                <option value="prison">Correctional Facility</option>
+                                <option value="power">Power Plant/Infrastructure</option>
+                                <option value="nature">Nature Reserve/Wildlife</option>
+                                <option value="event">Temporary Event Space</option>
+                                <option value="private">Private Property</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Additional Details -->
+                        <div class="mb-6">
+                            <label for="additional-details" class="block text-sm font-medium text-neutral mb-2">
+                                <i class="fas fa-file-alt mr-2"></i>Additional Details
+                            </label>
+                            <textarea 
+                                id="additional-details"
+                                rows="4"
+                                placeholder="Provide any additional context, operating hours, contact information, or special considerations..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none"
+                                data-bind="form.details"
+                                data-mock="true"
+                            ></textarea>
+                        </div>
+
+                        <!-- Emergency Contact (Optional) -->
+                        <div class="mb-6">
+                            <label for="emergency-contact" class="block text-sm font-medium text-neutral mb-2">
+                                <i class="fas fa-phone mr-2"></i>Emergency Contact (Optional)
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="emergency-contact"
+                                placeholder="Phone number for urgent drone-related issues"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                                data-bind="form.contact"
+                                data-mock="true"
+                            />
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <button 
+                                type="button" 
+                                class="px-6 py-3 border border-gray-300 text-neutral rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                data-event="click:cancelForm"
+                            >
+                                Cancel
+                            </button>
+                            
+                            <div class="flex items-center space-x-3">
+                                <!-- Loading State -->
+                                <div id="form-loading" class="hidden flex items-center text-primary">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Submitting...
+                                </div>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
+                                    data-implementation="Validate form and save to Firebase Firestore"
+                                >
+                                    <i class="fas fa-save mr-2"></i>
+                                    Submit Report
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Success/Error Messages -->
+                        <div id="form-message" class="mt-4 hidden">
+                            <!-- Success Message -->
+                            <div class="success-message hidden p-4 bg-success bg-opacity-10 border border-success border-opacity-20 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle text-success mr-3"></i>
+                                    <div>
+                                        <h4 class="font-medium text-success">Report Submitted Successfully</h4>
+                                        <p class="text-sm text-success opacity-80">Your drone restriction report has been saved and will be reviewed by authorities.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Error Message -->
+                            <div class="error-message hidden p-4 bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-circle text-danger mr-3"></i>
+                                    <div>
+                                        <h4 class="font-medium text-danger">Submission Failed</h4>
+                                        <p class="text-sm text-danger opacity-80">Please check your connection and try again.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Help Section -->
+                    <div class="bg-blue-50 rounded-lg p-6 mt-6">
+                        <h3 class="font-semibold text-neutral mb-3 flex items-center">
+                            <i class="fas fa-question-circle mr-2 text-primary"></i>
+                            Reporting Guidelines
+                        </h3>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-success mt-1 mr-2 text-xs"></i>
+                                Verify the location coordinates are accurate before submitting
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-success mt-1 mr-2 text-xs"></i>
+                                Include specific details about why the area should be restricted
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-success mt-1 mr-2 text-xs"></i>
+                                Provide contact information for verification if possible
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-success mt-1 mr-2 text-xs"></i>
+                                Reports are reviewed within 48 hours by aviation authorities
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ReportFormView -->
+
+        </main>
+    </div>
+    <!-- @END_COMPONENT: AppContainer -->
+
+    <!-- Modal for Zone Information Popup -->
+    <!-- @COMPONENT: ZoneInfoModal [displays detailed zone information] -->
+    <div id="zone-info-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" data-implementation="Show when map marker is clicked">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-neutral" data-bind="selectedZone.name">Auckland Airport Restricted Zone</h3>
+                    <button class="text-gray-400 hover:text-gray-600" data-event="click:closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 bg-danger rounded-full" data-bind="selectedZone.statusColor"></div>
+                        <span class="font-medium text-danger" data-bind="selectedZone.status">RESTRICTED</span>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-neutral mb-1">Restriction Type</h4>
+                        <p class="text-gray-600" data-bind="selectedZone.type">Airport Operations Zone</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-neutral mb-1">Coordinates</h4>
+                        <p class="text-gray-600 font-mono text-sm" data-bind="selectedZone.coordinates">-36.8485, 174.7633</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-medium text-neutral mb-1">Details</h4>
+                        <p class="text-gray-600" data-bind="selectedZone.details">Flight operations active 24/7. Minimum 5km clearance required for all unmanned aircraft.</p>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">Last Updated</span>
+                            <span class="text-sm text-gray-600" data-bind="selectedZone.lastUpdated">2024-01-15</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ZoneInfoModal -->
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // TODO: Replace with React Router implementation
+        (function() {
+            // View Management
+            let currentView = 'map';
+            let map = null;
+            let selectedCoordinates = null;
+            
+            // Mock data for no-fly zones
+            // @STATE: noFlyZones:array = mockNoFlyZones
+            const mockNoFlyZones = [
+                {
+                    id: 1,
+                    name: "Auckland International Airport",
+                    coordinates: [-36.8485, 174.7633],
+                    type: "airport",
+                    status: "RESTRICTED",
+                    statusColor: "bg-danger",
+                    details: "Flight operations active 24/7. Minimum 5km clearance required for all unmanned aircraft.",
+                    lastUpdated: "2024-01-15"
+                },
+                {
+                    id: 2,
+                    name: "Wellington Hospital Helipad",
+                    coordinates: [-41.3054, 174.7794],
+                    type: "hospital",
+                    status: "CONTROLLED",
+                    statusColor: "bg-warning",
+                    details: "Emergency helicopter operations. Contact hospital security before flights.",
+                    lastUpdated: "2024-01-12"
+                },
+                {
+                    id: 3,
+                    name: "Christchurch Airport",
+                    coordinates: [-43.4894, 172.5320],
+                    type: "airport",
+                    status: "RESTRICTED",
+                    statusColor: "bg-danger",
+                    details: "Major commercial airport. No drone flights within 4km radius.",
+                    lastUpdated: "2024-01-10"
+                },
+                {
+                    id: 4,
+                    name: "Fiordland National Park",
+                    coordinates: [-45.4000, 167.7000],
+                    type: "nature",
+                    status: "PROTECTED",
+                    statusColor: "bg-blue-500",
+                    details: "Protected wildlife area. Special permits required for aerial photography.",
+                    lastUpdated: "2024-01-08"
+                }
+            ];
+
+            // Initialize map
+            function initMap() {
+                if (map) return;
+                
+                // @FUNCTIONALITY: Initialize Leaflet map centered on New Zealand
+                map = L.map('map').setView([-41.2865, 174.7762], 6);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Add no-fly zone markers
+                mockNoFlyZones.forEach(zone => {
+                    const markerColor = zone.type === 'airport' ? 'red' : 
+                                      zone.type === 'hospital' ? 'orange' : 
+                                      zone.type === 'nature' ? 'blue' : 'gray';
+                    
+                    const marker = L.marker(zone.coordinates).addTo(map);
+                    
+                    // Create popup content
+                    const popupContent = `
+                        <div class="p-0">
+                            <h3 class="font-semibold text-neutral mb-2">${zone.name}</h3>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="w-3 h-3 ${zone.statusColor} rounded-full"></div>
+                                <span class="text-sm font-medium">${zone.status}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">${zone.details}</p>
+                            <button onclick="showZoneDetails(${zone.id})" class="w-full px-3 py-2 bg-primary text-white text-sm rounded font-medium hover:bg-blue-700 transition-colors">
+                                View Details
+                            </button>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent, {
+                        maxWidth: 250,
+                        className: 'custom-popup'
+                    });
+                });
+
+                // Add click handler for location selection
+                map.on('click', function(e) {
+                    selectedCoordinates = [e.latlng.lat, e.latlng.lng];
+                    updateLocationInput();
+                    
+                    // Visual feedback
+                    if (window.selectionMarker) {
+                        map.removeLayer(window.selectionMarker);
+                    }
+                    
+                    window.selectionMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+                        icon: L.icon({
+                            iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDlDNSAxNC4yNSAxMiAyMiAxMiAyMkMxMiAyMiAxOSAxNC4yNSAxOSA5QzE5IDUuMTMgMTUuODcgMiAxMiAyWk0xMiAxMS41QzEwLjYyIDExLjUgOS41IDEwLjM4IDkuNSA5QzkuNSA3LjYyIDEwLjYyIDYuNSAxMiA2LjVDMTMuMzggNi41IDE0LjUgNy42MiAxNC41IDlDMTQuNSAxMC4zOCAxMy4zOCAxMS41IDEyIDExLjVaIiBmaWxsPSIjMUU0MEFGIi8+Cjwvc3ZnPgo=',
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 24]
+                        })
+                    }).addTo(map);
+                });
+            }
+
+            function updateLocationInput() {
+                if (selectedCoordinates) {
+                    const locationInput = document.getElementById('location-input');
+                    locationInput.value = `${selectedCoordinates[0].toFixed(6)}, ${selectedCoordinates[1].toFixed(6)}`;
+                }
+            }
+
+            // View switching
+            function switchView(view) {
+                currentView = view;
+                
+                const mapView = document.getElementById('map-view');
+                const reportView = document.getElementById('report-view');
+                const mapBtn = document.getElementById('map-view-btn');
+                const reportBtn = document.getElementById('report-view-btn');
+
+                if (view === 'map') {
+                    mapView.classList.remove('hidden');
+                    reportView.classList.add('hidden');
+                    mapBtn.className = 'px-4 py-2 bg-primary text-white rounded-lg font-medium transition-colors duration-200 hover:bg-blue-700';
+                    reportBtn.className = 'px-4 py-2 bg-gray-100 text-neutral rounded-lg font-medium transition-colors duration-200 hover:bg-gray-200';
+                    
+                    // Initialize map when switching to map view
+                    setTimeout(initMap, 100);
+                } else {
+                    mapView.classList.add('hidden');
+                    reportView.classList.remove('hidden');
+                    reportBtn.className = 'px-4 py-2 bg-primary text-white rounded-lg font-medium transition-colors duration-200 hover:bg-blue-700';
+                    mapBtn.className = 'px-4 py-2 bg-gray-100 text-neutral rounded-lg font-medium transition-colors duration-200 hover:bg-gray-200';
+                }
+            }
+
+            // Zone details modal
+            window.showZoneDetails = function(zoneId) {
+                const zone = mockNoFlyZones.find(z => z.id === zoneId);
+                if (!zone) return;
+
+                // TODO: Implement React modal state management
+                const modal = document.getElementById('zone-info-modal');
+                modal.classList.remove('hidden');
+            };
+
+            // Form handling
+            function handleFormSubmit(e) {
+                e.preventDefault();
+                
+                // TODO: Implement Firebase Firestore integration
+                const formData = {
+                    location: document.getElementById('location-input').value,
+                    title: document.getElementById('zone-title').value,
+                    reason: document.getElementById('restriction-reason').value,
+                    details: document.getElementById('additional-details').value,
+                    contact: document.getElementById('emergency-contact').value,
+                    timestamp: new Date().toISOString(),
+                    coordinates: selectedCoordinates
+                };
+
+                // Show loading state
+                const loadingEl = document.getElementById('form-loading');
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                loadingEl.classList.remove('hidden');
+                submitBtn.disabled = true;
+
+                // Simulate Firebase submission
+                setTimeout(() => {
+                    loadingEl.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    
+                    // Show success message
+                    const messageEl = document.getElementById('form-message');
+                    const successEl = messageEl.querySelector('.success-message');
+                    messageEl.classList.remove('hidden');
+                    successEl.classList.remove('hidden');
+                    
+                    // Clear form
+                    e.target.reset();
+                    selectedCoordinates = null;
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        messageEl.classList.add('hidden');
+                        successEl.classList.add('hidden');
+                    }, 5000);
+                }, 2000);
+            }
+
+            // Event listeners
+            document.getElementById('map-view-btn').addEventListener('click', () => switchView('map'));
+            document.getElementById('report-view-btn').addEventListener('click', () => switchView('report'));
+            document.querySelector('form').addEventListener('submit', handleFormSubmit);
+            
+            // Close modal handlers
+            document.getElementById('zone-info-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            // Initialize app
+            initMap();
+        })();
+    </script>
+</body>
+</html>
