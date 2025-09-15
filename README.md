@@ -50,27 +50,30 @@ npm install
 npm run dev
 4️⃣ Open in your browser
 
-Go to: http://localhost:5173
- 🌐
-## 🌟 Contribution & Acknowledgement
+Go to: http://localhost:5173 🌐
+---
+## 🌟 CONTRIBUTION & ACKNOWLEDGEMENT
 
-This project was developed by **Arnab Barua** with guidance and professional insights from my brother, **Pallab Barua**.
+This project was developed by **_Arnab Barua_** with guidance and professional insights from my brother, **_Pallab Barua_**.
 
-**Pallab Barua** – *Financial Accountant | Financial Reporting & Compliance | IFRS | Process Automation | NZ Tax | Advanced Data & BI Tools Experience*
+### 👨‍💼 Pallab Barua
+**Financial Accountant | Financial Reporting & Compliance | IFRS | Process Automation | NZ Tax | Advanced Data & BI Tools Experience**
 
-> **Special thanks to Pallab Barua** for providing professional expertise, ensuring **accurate planning, systematic project structuring, and financial insight** for this project.
+> 🔹 **Special thanks to Pallab Barua**  
+> for providing professional expertise, ensuring **accurate planning**, **systematic project structuring**, and **financial insight** for this project.
 
 ---
 
-## 📄 License
+## 📄 LICENSE
 
 This project is licensed under the **MIT License**.  
 See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📫 Contact
+## 📫 CONTACT
 
-**Arnab Barua** – [GitHub Profile](https://github.com/arnabbarua20)  
-**Email:** **arnab.barua@example.com** *(replace with your actual email)*
+**Arnab Barua** – [arnabbarua20](https://github.com/arnabbarua20)  
+**Email:** **arnab.barua@example.com** 
+
 
